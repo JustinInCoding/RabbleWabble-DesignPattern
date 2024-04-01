@@ -26,3 +26,8 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
+public struct Question {
+	public let answer: String
+	public let hint: String?
+	public let prompt: String
+}
