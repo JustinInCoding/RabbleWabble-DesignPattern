@@ -39,13 +39,21 @@ public class SelectQuestionGroupViewController: UIViewController {
   
   // MARK: - Properties
 	private let appSettings = AppSettings.shared
-  public let questionGroups = QuestionGroup.allGroups()
-  private var selectedQuestionGroup: QuestionGroup!
+  
+	private let questionGroupCaretaker = QuestionGroupCaretaker()
+	private var questionGroups: [QuestionGroup] {
+		return questionGroupCaretaker.questionGroups
+	}
+	private var selectedQuestionGroup: QuestionGroup! {
+		get { return questionGroupCaretaker.selectedQuestionGroup }
+		set { questionGroupCaretaker.selectedQuestionGroup = newValue }
+	}
   
   // MARK: - View Lifecycle  
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     deselectTableViewCells()
+		printScoresToConsole()
   }
   
   private func deselectTableViewCells() {
@@ -54,6 +62,12 @@ public class SelectQuestionGroupViewController: UIViewController {
       tableView.deselectRow(at: indexPath, animated: false)
     }
   }
+	
+	private func printScoresToConsole() {
+		questionGroups.forEach {
+			print("\($0.title): correctCount: \($0.score.correctCount), incorrectCount: \($0.score.incorrectCount)")
+		}
+	}
 }
 
 extension SelectQuestionGroupViewController: UITableViewDataSource {
@@ -77,7 +91,7 @@ extension SelectQuestionGroupViewController: UITableViewDelegate {
 	
 	public override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
 		guard let viewController = segue.destination as? QuestionViewController else { return }
-		viewController.questionStrategy = appSettings.questionStrategy(for: selectedQuestionGroup)
+		viewController.questionStrategy = appSettings.questionStrategy(for: questionGroupCaretaker)
 		viewController.delegate = self
 	}
 }

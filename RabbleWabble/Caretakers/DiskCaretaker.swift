@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Razeware LLC
+/// Copyright (c) 2024 Razeware LLC
 /// 
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +26,41 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-public class Question: Codable {
-	public let answer: String
-	public let hint: String?
-	public let prompt: String
+import Foundation
+
+public final class DiskCaretaker {
+	public static let decoder = JSONDecoder()
+	public static let encoder = JSONEncoder()
 	
-	init(answer: String, 
-			 hint: String?,
-			 prompt: String) {
-		self.answer = answer
-		self.hint = hint
-		self.prompt = prompt
+	public static func createDocumentURL(withFileName fileName: String) -> URL {
+		let fileManager = FileManager.default
+		let url = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+		return url.appendingPathComponent(fileName).appendingPathExtension("json")
+	}
+	
+	public static func save<T: Codable>(_ object: T, to fileName: String) throws {
+		let url = createDocumentURL(withFileName: fileName)
+		do {
+			let data = try encoder.encode(object)
+			try data.write(to: url)
+		} catch (let error) {
+			print("Save failed: Object: \(object), Error: \(error)")
+			throw error
+		}
+	}
+	
+	public static func retrieve<T: Codable>(_ type: T.Type, from fileName: String) throws -> T {
+		let url = createDocumentURL(withFileName: fileName)
+		return try retrieve(type, from: url)
+	}
+	
+	public static func retrieve<T: Codable>(_ type: T.Type, from url: URL) throws -> T {
+		do {
+			let data = try Data(contentsOf: url)
+			return try decoder.decode(T.self, from: data)
+		} catch let error {
+			print("Retrieve failed: URL: \(url), Error: \(error)")
+			throw error
+		}
 	}
 }

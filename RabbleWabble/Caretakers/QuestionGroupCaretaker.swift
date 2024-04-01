@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Razeware LLC
+/// Copyright (c) 2024 Razeware LLC
 /// 
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +26,33 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-public class Question: Codable {
-	public let answer: String
-	public let hint: String?
-	public let prompt: String
+import Foundation
+
+public final class QuestionGroupCaretaker {
+	// MARK: - Properties
+	public let fileName = "QuestionGroupData"
+	public var questionGroups: [QuestionGroup] = []
+	public var selectedQuestionGroup: QuestionGroup!
 	
-	init(answer: String, 
-			 hint: String?,
-			 prompt: String) {
-		self.answer = answer
-		self.hint = hint
-		self.prompt = prompt
+	// MARK: - Object Lifecycle
+	public init() {
+		loadQuestionGroups()
+	}
+	
+	private func loadQuestionGroups() {
+		if let questionGroups = try? DiskCaretaker.retrieve([QuestionGroup].self, from: fileName) {
+			self.questionGroups = questionGroups
+			return
+		}
+		
+		let bundle = Bundle.main
+		let url = bundle.url(forResource: fileName, withExtension: "json")!
+		self.questionGroups = try! DiskCaretaker.retrieve([QuestionGroup].self, from: url)
+		try! save()
+	}
+	
+	// MARK: - instance methods
+	public func save() throws {
+		try DiskCaretaker.save(questionGroups, to: fileName)
 	}
 }
